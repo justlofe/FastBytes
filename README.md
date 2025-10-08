@@ -36,6 +36,7 @@ public class ExampleEncodable {
 ```java
 // Main.java
 import su.windmill.bytes.buffer.FastBuffer;
+import su.windmill.bytes.FastBytes;
 import su.windmill.bytes.codec.Codec;
 import su.windmill.bytes.codec.context.DecodeContext;
 
@@ -81,7 +82,7 @@ public class Main {
                 42
         );
 
-        FastBuffer buffer = FastBuffer.allocateExpanding();
+        FastBuffer buffer = FastBytes.expanding();
 
         // Encode to buffer
         EXAMPLE_CODEC.encode(exampleEncodable, buffer);
@@ -89,7 +90,7 @@ public class Main {
         // Decode from buffer
         ExampleEncodable decoded = EXAMPLE_CODEC.decode(DecodeContext.of(buffer));
 
-        // Print and compare data
+        // Print data
         System.out.printf(
                 "id: %s\nname: %s\nsomeParameter: %s\n",
                 decoded.id,
