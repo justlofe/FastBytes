@@ -32,24 +32,4 @@ public interface FastBuffer extends FastReader, FastWriter {
     @Override
     FastBuffer writeUTF8(String val);
 
-    static FastBuffer allocateUnpooled() {
-        return allocateExpanding(1024);
-    }
-
-    static ExpandingBuffer allocateExpanding(int size) {
-        return allocateExpanding(size, false);
-    }
-
-    static ExpandingBuffer allocateExpanding(int size, boolean onlyRead) {
-        return new ExpandingBuffer(new byte[size], onlyRead);
-    }
-
-    static FixedBuffer allocateFixed(int size) {
-        return allocateFixed(size, false);
-    }
-
-    static FixedBuffer allocateFixed(int size, boolean onlyRead) {
-        return new FixedBuffer(new byte[size], onlyRead);
-    }
-
 }

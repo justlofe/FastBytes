@@ -24,6 +24,11 @@ public class RedirectBuffer implements FastBuffer {
     }
 
     @Override
+    public int readableBytes() {
+        return buffer.readableBytes();
+    }
+
+    @Override
     public double readDouble() {
         return buffer.readDouble();
     }

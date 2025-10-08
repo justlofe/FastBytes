@@ -12,4 +12,9 @@ public interface FastReader {
     char readChar();
     String readUTF8();
 
+    /**
+     * Return count of readable bytes
+     */
+    int readableBytes();
+
 }

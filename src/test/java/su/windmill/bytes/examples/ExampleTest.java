@@ -2,6 +2,7 @@ package su.windmill.bytes.examples;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import su.windmill.bytes.FastBytes;
 import su.windmill.bytes.buffer.FastBuffer;
 import su.windmill.bytes.codec.Codec;
 import su.windmill.bytes.codec.context.DecodeContext;
@@ -49,21 +50,13 @@ public class ExampleTest {
                 42
         );
 
-        FastBuffer buffer = FastBuffer.allocateUnpooled();
+        FastBuffer buffer = FastBytes.expanding();
 
         // Encode to buffer
         EXAMPLE_CODEC.encode(exampleEncodable, buffer);
 
         // Decode from buffer
         ExampleEncodable decoded = EXAMPLE_CODEC.decode(DecodeContext.of(buffer));
-
-        // Print and compare data
-        System.out.printf(
-                "id: %s\nname: %s\nsomeParameter: %s\n",
-                decoded.id,
-                decoded.name,
-                decoded.someParameter
-        );
 
         Assertions.assertEquals(exampleEncodable.id, decoded.id);
         Assertions.assertEquals(exampleEncodable.name, decoded.name);

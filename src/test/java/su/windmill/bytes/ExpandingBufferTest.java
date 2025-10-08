@@ -12,7 +12,7 @@ public class ExpandingBufferTest {
 
     @Test
     public void test() {
-        FastBuffer buffer = FastBuffer.allocateUnpooled();
+        FastBuffer buffer = FastBytes.expanding();
         buffer.writeInt(42);
         buffer.writeInt(982);
         buffer.writeFloat(42.67f);

@@ -10,7 +10,7 @@ public class StringCodecTest {
 
     @Test
     public void test() {
-        FastBuffer buffer = FastBuffer.allocateUnpooled();
+        FastBuffer buffer = FastBytes.expanding();
         String testString = UUID.randomUUID().toString();
         buffer.writeUTF8(testString);
         Assertions.assertEquals(testString, buffer.readUTF8());

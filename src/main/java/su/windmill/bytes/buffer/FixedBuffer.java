@@ -5,13 +5,10 @@ import java.nio.charset.StandardCharsets;
 public class FixedBuffer implements FastBuffer {
 
     protected byte[] data;
-    protected final boolean onlyRead;
     protected transient int readCursor, writeCursor;
 
-    public FixedBuffer(byte[] data, boolean onlyRead) {
-        if(data == null) throw new IllegalArgumentException("data can't be null");
-        this.data = data;
-        this.onlyRead = onlyRead;
+    public FixedBuffer(int size) {
+        this.data = new byte[size];
         this.readCursor = 0;
         this.writeCursor = 0;
     }
@@ -92,14 +89,14 @@ public class FixedBuffer implements FastBuffer {
 
     @Override
     public short readShort() {
-        if(!hasBytes(readCursor, 2)) throwEndOfData();
+        if(!hasBytes(2)) throwEndOfData();
         return (short) (((peekByte() & 0xFF) << 8) |
                 (peekByte() & 0xFF));
     }
 
     @Override
     public int readInt() {
-        if(!hasBytes(readCursor, 4)) throwEndOfData();
+        if(!hasBytes(4)) throwEndOfData();
         return ((peekByte() & 0xFF) << 24) |
                 ((peekByte() & 0xFF) << 16) |
                 ((peekByte() & 0xFF) << 8) |
@@ -108,7 +105,7 @@ public class FixedBuffer implements FastBuffer {
 
     @Override
     public long readLong() {
-        if (!hasBytes(readCursor, 8)) throwEndOfData();
+        if (!hasBytes(8)) throwEndOfData();
         return ((peekByte() & 0xFFL) << 56) |
                 ((peekByte() & 0xFFL) << 48) |
                 ((peekByte() & 0xFFL) << 40) |
@@ -148,16 +145,20 @@ public class FixedBuffer implements FastBuffer {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
+    @Override
+    public int readableBytes() {
+        return writeCursor - readCursor;
+    }
+
     protected void writeBytes(byte... bytes) {
-        if(onlyRead) throw new UnsupportedOperationException("only read");
-        if(!hasBytes(writeCursor, bytes.length)) throwEndOfData();
+        if(data.length < (writeCursor + bytes.length)) throwEndOfData();
         for (byte val : bytes) {
             data[writeCursor++] = val;
         }
     }
 
     private byte peekByte() {
-        if(!hasBytes(readCursor, 1)) throwEndOfData();
+        if(!hasBytes(1)) throwEndOfData();
         return data[readCursor++];
     }
 
@@ -165,8 +166,8 @@ public class FixedBuffer implements FastBuffer {
         throw new UnsupportedOperationException("end of data");
     }
 
-    protected boolean hasBytes(int cursor, int count) {
-        return data.length >= (cursor + count);
+    private boolean hasBytes(int count) {
+        return writeCursor >= readCursor + count;
     }
 
 }

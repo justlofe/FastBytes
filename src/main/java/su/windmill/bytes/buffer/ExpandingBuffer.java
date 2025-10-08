@@ -1,15 +1,14 @@
 package su.windmill.bytes.buffer;
 
 public class ExpandingBuffer extends FixedBuffer {
-    public ExpandingBuffer(byte[] data, boolean onlyRead) {
-        super(data, onlyRead);
+
+    public ExpandingBuffer(int size) {
+        super(size);
     }
 
     @Override
     protected void writeBytes(byte... bytes) {
-        if(onlyRead) throw new UnsupportedOperationException("only read");
-
-        if(!hasBytes(writeCursor, bytes.length)) {
+        if(data.length < (writeCursor + bytes.length)) {
             int newSize = writeCursor + bytes.length + 8;
             byte[] newData = new byte[newSize];
             System.arraycopy(data, 0, newData, 0, data.length);

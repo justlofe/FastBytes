@@ -81,7 +81,7 @@ public class Main {
                 42
         );
 
-        FastBuffer buffer = FastBuffer.allocateUnpooled();
+        FastBuffer buffer = FastBuffer.allocateExpanding();
 
         // Encode to buffer
         EXAMPLE_CODEC.encode(exampleEncodable, buffer);
