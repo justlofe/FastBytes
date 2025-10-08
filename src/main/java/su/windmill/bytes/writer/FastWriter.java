@@ -1,4 +1,4 @@
-package su.windmill.writer;
+package su.windmill.bytes.writer;
 
 public interface FastWriter {
 
@@ -9,5 +9,7 @@ public interface FastWriter {
     FastWriter writeFloat(float val);
     FastWriter writeDouble(double val);
     FastWriter writeBoolean(boolean val);
+    FastWriter writeChar(char val);
+    FastWriter writeUTF8(String val);
 
 }

@@ -1,18 +1,14 @@
-package su.windmill.buffer;
+package su.windmill.bytes.buffer;
 
-import su.windmill.reader.FastReader;
-import su.windmill.writer.FastWriter;
+import java.nio.charset.StandardCharsets;
 
-import java.io.IOException;
-import java.io.InputStream;
+public class FixedBuffer implements FastBuffer {
 
-public class FastBuffer implements FastReader, FastWriter {
-
-    protected final transient byte[] data;
+    protected byte[] data;
     protected final boolean onlyRead;
     protected transient int readCursor, writeCursor;
 
-    public FastBuffer(byte[] data, boolean onlyRead) {
+    public FixedBuffer(byte[] data, boolean onlyRead) {
         if(data == null) throw new IllegalArgumentException("data can't be null");
         this.data = data;
         this.onlyRead = onlyRead;
@@ -21,13 +17,13 @@ public class FastBuffer implements FastReader, FastWriter {
     }
 
     @Override
-    public FastBuffer writeByte(byte val) {
+    public FixedBuffer writeByte(byte val) {
         writeBytes(val);
         return this;
     }
 
     @Override
-    public FastBuffer writeShort(short val) {
+    public FixedBuffer writeShort(short val) {
         writeBytes(
                 (byte) (val >> 8),
                 (byte) val
@@ -36,7 +32,7 @@ public class FastBuffer implements FastReader, FastWriter {
     }
 
     @Override
-    public FastBuffer writeInt(int val) {
+    public FixedBuffer writeInt(int val) {
         writeBytes(
                 (byte) (val >> 24),
                 (byte) (val >> 16),
@@ -47,7 +43,7 @@ public class FastBuffer implements FastReader, FastWriter {
     }
 
     @Override
-    public FastBuffer writeLong(long val) {
+    public FixedBuffer writeLong(long val) {
         writeBytes(
                 (byte) (val >> 56),
                 (byte) (val >> 48),
@@ -62,18 +58,31 @@ public class FastBuffer implements FastReader, FastWriter {
     }
 
     @Override
-    public FastBuffer writeFloat(float val) {
+    public FixedBuffer writeFloat(float val) {
         return writeInt(Float.floatToIntBits(val));
     }
 
     @Override
-    public FastBuffer writeDouble(double val) {
+    public FixedBuffer writeDouble(double val) {
         return writeLong(Double.doubleToLongBits(val));
     }
 
     @Override
-    public FastBuffer writeBoolean(boolean val) {
+    public FixedBuffer writeBoolean(boolean val) {
         return writeByte((byte) (val ? 1 : 0));
+    }
+
+    @Override
+    public FixedBuffer writeChar(char val) {
+        return writeShort((short) val);
+    }
+
+    @Override
+    public FastBuffer writeUTF8(String val) {
+        byte[] bytes = val.getBytes(StandardCharsets.UTF_8);
+        writeInt(bytes.length);
+        writeBytes(bytes);
+        return this;
     }
 
     @Override
@@ -125,17 +134,25 @@ public class FastBuffer implements FastReader, FastWriter {
         return readByte() == 1;
     }
 
-    private void writeBytes(byte... bytes) {
+    @Override
+    public char readChar() {
+        return (char) readShort();
+    }
+
+    @Override
+    public String readUTF8() {
+        byte[] bytes = new byte[readInt()];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = peekByte();
+        }
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    protected void writeBytes(byte... bytes) {
         if(onlyRead) throw new UnsupportedOperationException("only read");
         if(!hasBytes(writeCursor, bytes.length)) throwEndOfData();
         for (byte val : bytes) {
             data[writeCursor++] = val;
-        }
-    }
-
-    private void writeBytes(byte[] source, int offset, int length) {
-        for (int i = 0; i < length; i++) {
-            data[writeCursor++] = source[offset + i];
         }
     }
 
@@ -148,32 +165,8 @@ public class FastBuffer implements FastReader, FastWriter {
         throw new UnsupportedOperationException("end of data");
     }
 
-    private boolean hasBytes(int cursor, int count) {
+    protected boolean hasBytes(int cursor, int count) {
         return data.length >= (cursor + count);
-    }
-
-    public static FastBuffer readStream(InputStream is, int maxSize) {
-        byte[] bytes = new byte[Math.min(maxSize, 8192)];
-        int cursor = 0;
-        int val;
-        try {
-            while ((val = is.read()) != -1) {
-                bytes[cursor++] = (byte) val;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        FastBuffer buffer = FastBuffer.allocate(cursor + 1);
-        buffer.writeBytes(bytes, 0, buffer.data.length);
-        return buffer;
-    }
-
-    public static FastBuffer allocate(int size) {
-        return allocate(size, false);
-    }
-
-    public static FastBuffer allocate(int size, boolean onlyRead) {
-        return new FastBuffer(new byte[size], onlyRead);
     }
 
 }

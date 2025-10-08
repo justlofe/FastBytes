@@ -1,10 +1,10 @@
-package su.windmill.codecs;
+package su.windmill.bytes.codecs;
 
-import su.windmill.buffer.FastBuffer;
-import su.windmill.codec.Codec;
-import su.windmill.codec.Decoder;
-import su.windmill.codec.Encoder;
-import su.windmill.codec.context.DecodeContext;
+import su.windmill.bytes.buffer.FastBuffer;
+import su.windmill.bytes.codec.Codec;
+import su.windmill.bytes.codec.Decoder;
+import su.windmill.bytes.codec.Encoder;
+import su.windmill.bytes.codec.context.DecodeContext;
 
 public class FixedCodec<E> implements Codec<E> {
 

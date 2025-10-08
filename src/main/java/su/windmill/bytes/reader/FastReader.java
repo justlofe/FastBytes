@@ -1,4 +1,4 @@
-package su.windmill.reader;
+package su.windmill.bytes.reader;
 
 public interface FastReader {
 
@@ -9,5 +9,7 @@ public interface FastReader {
     float readFloat();
     double readDouble();
     boolean readBoolean();
+    char readChar();
+    String readUTF8();
 
 }

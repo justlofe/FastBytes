@@ -1,8 +1,8 @@
 plugins {
-    id("java")
+    id("java-library")
 }
 
-group = "su.windmill"
+group = "su.windmill.bytes"
 version = "1.0-SNAPSHOT"
 
 repositories {

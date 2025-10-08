@@ -1,6 +1,6 @@
-package su.windmill.codec;
+package su.windmill.bytes.codec;
 
-import su.windmill.codec.context.DecodeContext;
+import su.windmill.bytes.codec.context.DecodeContext;
 
 @FunctionalInterface
 public interface Decoder<E> {

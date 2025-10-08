@@ -1,6 +1,6 @@
-package su.windmill.codec;
+package su.windmill.bytes.codec;
 
-import su.windmill.buffer.FastBuffer;
+import su.windmill.bytes.buffer.FastBuffer;
 
 @FunctionalInterface
 public interface Encoder<E> {

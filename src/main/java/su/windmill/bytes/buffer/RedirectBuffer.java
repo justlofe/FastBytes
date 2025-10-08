@@ -1,17 +1,26 @@
-package su.windmill.buffer;
+package su.windmill.bytes.buffer;
 
-public class RedirectBuffer extends FastBuffer {
+public class RedirectBuffer implements FastBuffer {
 
     protected final FastBuffer buffer;
 
     public RedirectBuffer(FastBuffer buffer) {
-        super(new byte[0], buffer.onlyRead);
         this.buffer = buffer;
     }
 
     @Override
     public boolean readBoolean() {
         return buffer.readBoolean();
+    }
+
+    @Override
+    public char readChar() {
+        return buffer.readChar();
+    }
+
+    @Override
+    public String readUTF8() {
+        return buffer.readUTF8();
     }
 
     @Override
@@ -50,6 +59,16 @@ public class RedirectBuffer extends FastBuffer {
     }
 
     @Override
+    public FastBuffer writeChar(char val) {
+        return buffer.writeChar(val);
+    }
+
+    @Override
+    public FastBuffer writeUTF8(String val) {
+        return buffer.writeUTF8(val);
+    }
+
+    @Override
     public FastBuffer writeDouble(double val) {
         return buffer.writeDouble(val);
     }
@@ -78,5 +97,7 @@ public class RedirectBuffer extends FastBuffer {
     public FastBuffer writeByte(byte val) {
         return buffer.writeByte(val);
     }
+
+
 
 }

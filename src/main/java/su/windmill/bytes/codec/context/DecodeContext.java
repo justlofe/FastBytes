@@ -1,7 +1,7 @@
-package su.windmill.codec.context;
+package su.windmill.bytes.codec.context;
 
-import su.windmill.buffer.FastBuffer;
-import su.windmill.codec.Decoder;
+import su.windmill.bytes.buffer.FastBuffer;
+import su.windmill.bytes.codec.Decoder;
 
 import java.util.logging.Logger;
 

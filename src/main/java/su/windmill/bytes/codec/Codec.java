@@ -1,6 +1,6 @@
-package su.windmill.codec;
+package su.windmill.bytes.codec;
 
-import su.windmill.codecs.FixedCodec;
+import su.windmill.bytes.codecs.FixedCodec;
 
 public interface Codec<E> extends Encoder<E>, Decoder<E> {
 
