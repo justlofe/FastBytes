@@ -14,6 +14,16 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
+var targetJavaVersion = 23
+java {
+    var javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 }
