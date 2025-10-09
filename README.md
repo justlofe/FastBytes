@@ -8,8 +8,16 @@ Simple library for work with bytes like ByteBuf.
 # Usage
 
 ### Gradle
+```kotlin
+repositories {
+    mavenCentral()
+    maven {url = uri("https://jitpack.io")}
+}
 
-### Maven
+dependencies {
+    implementation("com.github.justlofe:FastBytes:1.0")
+}
+```
 
 ## Examples
 For example, we will create a class and codec for him.
