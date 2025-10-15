@@ -14,14 +14,20 @@ public class FixedBuffer implements FastBuffer {
     }
 
     @Override
+    public FixedBuffer writeBytes(byte[] bytes) {
+        writeRawBytes(bytes);
+        return this;
+    }
+
+    @Override
     public FixedBuffer writeByte(byte val) {
-        writeBytes(val);
+        writeRawBytes(val);
         return this;
     }
 
     @Override
     public FixedBuffer writeShort(short val) {
-        writeBytes(
+        writeRawBytes(
                 (byte) (val >> 8),
                 (byte) val
         );
@@ -30,7 +36,7 @@ public class FixedBuffer implements FastBuffer {
 
     @Override
     public FixedBuffer writeInt(int val) {
-        writeBytes(
+        writeRawBytes(
                 (byte) (val >> 24),
                 (byte) (val >> 16),
                 (byte) (val >> 8),
@@ -41,7 +47,7 @@ public class FixedBuffer implements FastBuffer {
 
     @Override
     public FixedBuffer writeLong(long val) {
-        writeBytes(
+        writeRawBytes(
                 (byte) (val >> 56),
                 (byte) (val >> 48),
                 (byte) (val >> 40),
@@ -78,8 +84,24 @@ public class FixedBuffer implements FastBuffer {
     public FastBuffer writeUTF8(String val) {
         byte[] bytes = val.getBytes(StandardCharsets.UTF_8);
         writeInt(bytes.length);
-        writeBytes(bytes);
+        writeRawBytes(bytes);
         return this;
+    }
+
+    @Override
+    public byte[] packReadable() {
+        byte[] bytes = new byte[readableBytes()];
+        readBytes(bytes);
+        return bytes;
+    }
+
+    @Override
+    public void readBytes(byte[] bytes) {
+        int length = bytes.length;
+        if(!hasBytes(length)) throwEndOfData();
+        for (int i = 0; i < length; i++) {
+            bytes[i] = readByte();
+        }
     }
 
     @Override
@@ -150,7 +172,7 @@ public class FixedBuffer implements FastBuffer {
         return writeCursor - readCursor;
     }
 
-    protected void writeBytes(byte... bytes) {
+    protected void writeRawBytes(byte... bytes) {
         if(data.length < (writeCursor + bytes.length)) throwEndOfData();
         for (byte val : bytes) {
             data[writeCursor++] = val;

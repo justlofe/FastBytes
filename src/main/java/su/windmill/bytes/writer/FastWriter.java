@@ -3,6 +3,11 @@ package su.windmill.bytes.writer;
 public interface FastWriter {
 
     /**
+     * Writes bytes from an array
+     */
+    FastWriter writeBytes(byte[] bytes);
+
+    /**
      * Writes one byte
      */
     FastWriter writeByte(byte val);
