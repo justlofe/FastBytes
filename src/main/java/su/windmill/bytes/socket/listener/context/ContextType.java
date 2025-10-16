@@ -6,6 +6,7 @@ public final class ContextType<C extends ListenerContext> {
     public static final ContextType<MessageContext> MESSAGE = new ContextType<>("message", MessageContext.class);
     public static final ContextType<ServerMessageContext> SERVER_MESSAGE = new ContextType<>("server_message", ServerMessageContext.class);
     public static final ContextType<CloseContext> CLOSE = new ContextType<>("close", CloseContext.class);
+    public static final ContextType<ServerCloseContext> SERVER_CLOSE = new ContextType<>("server_close", ServerCloseContext.class);
     public static final ContextType<ErrorContext> ERROR = new ContextType<>("error", ErrorContext.class);
 
     private final String id;

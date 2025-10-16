@@ -4,7 +4,7 @@ import su.windmill.bytes.socket.WebSocket;
 
 import java.util.Optional;
 
-public final class CloseContext extends WebSocketContext {
+public class CloseContext extends WebSocketContext {
 
     private final int code;
     private final Optional<String> reason;

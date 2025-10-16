@@ -1,5 +1,5 @@
 # FastBytes
-Simple library for work with bytes like ByteBuf.
+Simple WebSocket's library with some additions.
 
 ## Features
 - FastBuffer - allowing to read and write bytes

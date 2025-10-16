@@ -64,41 +64,39 @@ public record Frame(int opcode, byte[] payload) {
         return new Frame(opcode, payload);
     }
 
-    public static void write(Frame frame, Submitter submitter) throws IOException {
+    public static void write(Frame frame, OutputStream outputStream, boolean masked) throws IOException {
         byte[] payload = frame.payload();
+        if(payload == null) payload = new byte[0];
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int finAndOp = FINAL | (frame.opcode() & OPCODE_MASK);
         baos.write(finAndOp);
 
-        int payloadLength = payload == null ? 0 : payload.length;
-        if (payloadLength <= 125) baos.write(MASKED | payloadLength);
-        else if (payloadLength <= 65535) {
+        int length = payload.length;
+        if (length <= 125) baos.write(MASKED | length);
+        else if (length <= 65535) {
             baos.write(MASKED | 126);
-            baos.write((payloadLength >> 8) & 0xFF);
-            baos.write(payloadLength & 0xFF);
+            baos.write((length >> 8) & 0xFF);
+            baos.write(length & 0xFF);
         }
         else {
             baos.write(MASKED | 127);
-            for (int i = 7; i >= 0; i--) baos.write((payloadLength >> (8*i)) & 0xFF);
+            for (int i = 7; i >= 0; i--) baos.write((length >> (8*i)) & 0xFF);
         }
 
-        SecureRandom random = new SecureRandom();
-        byte[] maskKey = new byte[4];
-        random.nextBytes(maskKey);
-        baos.write(maskKey);
-        for (int i = 0; i < payloadLength; i++) {
-            baos.write(payload[i] ^ maskKey[i % 4]);
+        if(!masked) baos.write(payload);
+        else {
+            SecureRandom random = new SecureRandom();
+            byte[] maskKey = new byte[4];
+            random.nextBytes(maskKey);
+            baos.write(maskKey);
+            for (int i = 0; i < length; i++) {
+                baos.write(payload[i] ^ maskKey[i % 4]);
+            }
         }
 
-        submitter.submit(baos.toByteArray());
-    }
-
-    @FunctionalInterface
-    public interface Submitter {
-
-        void submit(byte[] payload) throws IOException;
-
+        outputStream.write(baos.toByteArray());
+        outputStream.flush();
     }
 
 }

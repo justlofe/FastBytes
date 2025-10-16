@@ -8,11 +8,9 @@ import java.util.Optional;
 public sealed class MessageContext extends WebSocketContext permits ServerMessageContext {
 
     private final FastBuffer message;
-    private final boolean textMessage;
+    private final Optional<String> textMessage;
 
-    private String readTextMessage;
-
-    public MessageContext(WebSocket socket, FastBuffer message, boolean textMessage) {
+    public MessageContext(WebSocket socket, FastBuffer message, Optional<String> textMessage) {
         super(socket);
         this.message = message;
         this.textMessage = textMessage;
@@ -26,9 +24,7 @@ public sealed class MessageContext extends WebSocketContext permits ServerMessag
      * Returns message as text. Returns empty, if message is presented not as text.
      */
     public Optional<String> textMessage() {
-        if(!textMessage) return Optional.empty();
-        return Optional.ofNullable(readTextMessage)
-                .or(() -> Optional.ofNullable(readTextMessage = message.readUTF8()));
+        return textMessage;
     }
 
 }

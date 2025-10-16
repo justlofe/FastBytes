@@ -2,10 +2,10 @@ package su.windmill.bytes;
 
 import org.junit.jupiter.api.Test;
 
-public class WebSocketClientTest {
+public class WebSocketServerTest {
 
     @Test
-    public void test() {
+    public void test(){
 
     }
 
