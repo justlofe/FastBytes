@@ -1,7 +1,5 @@
 package su.windmill.bytes.buffer;
 
-import su.windmill.bytes.writer.FastWriter;
-
 public class RedirectBuffer implements FastBuffer {
 
     protected final FastBuffer buffer;
