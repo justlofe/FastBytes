@@ -18,7 +18,6 @@ public interface WebSocket {
 
     <C extends ListenerContext, L extends Listener<C>> void addListener(Key key, ContextType<C> type, L listener);
 
-    // does something changed
     void removeListener(Key key, ContextType<?> type);
 
 }

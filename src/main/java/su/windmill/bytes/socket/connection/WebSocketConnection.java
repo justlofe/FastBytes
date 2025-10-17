@@ -63,7 +63,7 @@ public final class WebSocketConnection {
             if(!handshakeBehaviour.handshake(this)) return;
         }
         catch (Throwable throwable) {
-            errorConsumer.accept(throwable);
+            errorConsumer.accept(this, throwable);
             try {
                 socket.close();
             }
@@ -84,12 +84,12 @@ public final class WebSocketConnection {
                 if (frame == null) break;
 
                 switch (frame.opcode()) {
-                    case Frame.OPCODE_TEXT -> messageConsumer.accept(Either.second(new String(frame.payload(), StandardCharsets.UTF_8)));
+                    case Frame.OPCODE_TEXT -> messageConsumer.accept(this, Either.second(new String(frame.payload(), StandardCharsets.UTF_8)));
                     case Frame.OPCODE_BINARY -> {
                         byte[] payload = frame.payload();
                         FastBuffer buffer = FastBytes.fixed(payload.length);
                         buffer.writeBytes(payload);
-                        messageConsumer.accept(Either.first(buffer));
+                        messageConsumer.accept(this, Either.first(buffer));
                     }
                     case Frame.OPCODE_CLOSE -> {
                         int code = 0;
@@ -110,7 +110,7 @@ public final class WebSocketConnection {
             }
         }
         catch (Throwable throwable) {
-            errorConsumer.accept(throwable);
+            errorConsumer.accept(this, throwable);
             try {
                 socket.close();
             }
@@ -124,7 +124,7 @@ public final class WebSocketConnection {
             writer.accept(buffer);
         }
         catch (Throwable throwable) {
-            errorConsumer.accept(throwable);
+            errorConsumer.accept(this, throwable);
         }
 
         writeFrame(
@@ -151,7 +151,7 @@ public final class WebSocketConnection {
             );
         }
         catch (Throwable throwable) {
-            errorConsumer.accept(throwable);
+            errorConsumer.accept(this, throwable);
         }
     }
 
@@ -167,10 +167,10 @@ public final class WebSocketConnection {
             writeFrame(Frame.OPCODE_CLOSE, true, baos.toByteArray());
             shutdown();
 
-            closeConsumer.accept(code, reason);
+            closeConsumer.accept(this, code, reason);
         }
         catch (Throwable throwable) {
-            errorConsumer.accept(throwable);
+            errorConsumer.accept(this, throwable);
             shutdown();
         }
     }

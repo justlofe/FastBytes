@@ -1,7 +1,8 @@
 package su.windmill.bytes.socket.connection;
 
-import java.util.function.BiConsumer;
-
 @FunctionalInterface
-public interface CloseConsumer extends BiConsumer<Integer, String> {
+public interface CloseConsumer {
+
+    void accept(WebSocketConnection connection, int code, String reason);
+
 }

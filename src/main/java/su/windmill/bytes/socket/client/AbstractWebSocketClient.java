@@ -59,9 +59,9 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
                 socket,
                 false,
                 new ClientHandshake(uri, host, port),
-                either -> message(either.firstAsOptional().orElseGet(FastBytes::expanding), either.second()),
-                this::error,
-                (code, reason) -> listenerService.call(ContextType.CLOSE, new CloseContext(this, code, reason))
+                (_, message) -> message(message.firstAsOptional().orElseGet(FastBytes::expanding), message.second()),
+                (_, error) -> error(error),
+                (_, code, reason) -> listenerService.call(ContextType.CLOSE, new CloseContext(this, code, reason))
         );
         connection.performHandshake();
 

@@ -19,8 +19,6 @@ public record ClientHandshake(URI uri, String host, int port) implements Handsha
         String key = createKey();
         String request = createConnectionRequest(host, port, key);
 
-        System.out.println("Request: {\n" + request + "\n}");
-
         OutputStream outputStream = connection.outputStream();
         outputStream.write(request.getBytes(StandardCharsets.UTF_8));
         outputStream.flush();

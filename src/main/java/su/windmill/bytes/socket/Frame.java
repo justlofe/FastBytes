@@ -72,15 +72,17 @@ public record Frame(int opcode, byte[] payload) {
         int finAndOp = FINAL | (frame.opcode() & OPCODE_MASK);
         baos.write(finAndOp);
 
+        int maskedBit = (masked ? MASKED : 0);
+
         int length = payload.length;
-        if (length <= 125) baos.write(MASKED | length);
+        if (length <= 125) baos.write(maskedBit | length);
         else if (length <= 65535) {
-            baos.write(MASKED | 126);
+            baos.write(maskedBit | 126);
             baos.write((length >> 8) & 0xFF);
             baos.write(length & 0xFF);
         }
         else {
-            baos.write(MASKED | 127);
+            baos.write(maskedBit | 127);
             for (int i = 7; i >= 0; i--) baos.write((length >> (8*i)) & 0xFF);
         }
 

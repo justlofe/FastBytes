@@ -7,16 +7,10 @@ import su.windmill.bytes.socket.MessageWriter;
 import su.windmill.bytes.socket.connection.WebSocketConnection;
 import su.windmill.bytes.socket.connection.handshake.ServerHandshake;
 import su.windmill.bytes.socket.listener.Listener;
-import su.windmill.bytes.socket.listener.context.ContextType;
-import su.windmill.bytes.socket.listener.context.ListenerContext;
-import su.windmill.bytes.socket.listener.context.ServerCloseContext;
-import su.windmill.bytes.socket.listener.context.ServerMessageContext;
+import su.windmill.bytes.socket.listener.context.*;
 import su.windmill.bytes.util.Key;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -57,6 +51,8 @@ public abstract class AbstractWebSocketServer implements WebSocketServer {
         serverSocket = new ServerSocket(socketAddress.getPort(), 0);
         running = true;
 
+        listenerService.call(ContextType.START, new WebSocketContext(this));
+
         executorService.execute(() -> {
             while (running) {
                 try {
@@ -68,6 +64,8 @@ public abstract class AbstractWebSocketServer implements WebSocketServer {
 
                     CONNECTIONS.add(connection);
                     connection.startReadLoop(executorService);
+
+                    listenerService.call(ContextType.SERVER_OPEN, new ServerOpenContext(this, connection));
                 }
                 catch (Throwable throwable) {
                     try {
@@ -80,24 +78,19 @@ public abstract class AbstractWebSocketServer implements WebSocketServer {
     }
 
     private WebSocketConnection createConnection(Socket socket) throws IOException {
-        Reference<WebSocketConnection> reference = new WeakReference<>(null);
-        WebSocketConnection connection = new WebSocketConnection(
+        return new WebSocketConnection(
                 socket,
                 true,
                 ServerHandshake.INSTANCE,
-                either -> message(reference.get(), either.firstAsOptional().orElseGet(FastBytes::expanding), either.second()),
-                throwable -> {
-                    throwable.printStackTrace();
-                },
-                (code, reason) -> listenerService.call(ContextType.SERVER_CLOSE, new ServerCloseContext(
+                (connection, message) -> message(connection, message.firstAsOptional().orElseGet(FastBytes::expanding), message.second()),
+                (_, throwable) -> listenerService.call(ContextType.ERROR, new ErrorContext(this, throwable)),
+                (connection, code, reason) -> listenerService.call(ContextType.SERVER_CLOSE, new ServerCloseContext(
                         this,
                         code,
                         reason,
-                        reference.get()
+                        connection
                 ))
         );
-        reference.refersTo(connection);
-        return connection;
     }
 
     private void message(WebSocketConnection connection, FastBuffer message, String textMessage) {
