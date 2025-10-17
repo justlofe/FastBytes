@@ -84,12 +84,15 @@ public abstract class AbstractWebSocketServer implements WebSocketServer {
                 ServerHandshake.INSTANCE,
                 (connection, message) -> message(connection, message.firstAsOptional().orElseGet(FastBytes::expanding), message.second()),
                 (_, throwable) -> listenerService.call(ContextType.ERROR, new ErrorContext(this, throwable)),
-                (connection, code, reason) -> listenerService.call(ContextType.SERVER_CLOSE, new ServerCloseContext(
-                        this,
-                        code,
-                        reason,
-                        connection
-                ))
+                (connection, code, reason) -> {
+                    listenerService.call(ContextType.SERVER_CLOSE, new ServerCloseContext(
+                            this,
+                            code,
+                            reason,
+                            connection
+                    ));
+                    CONNECTIONS.remove(connection);
+                }
         );
     }
 

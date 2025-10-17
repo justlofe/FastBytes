@@ -3,6 +3,9 @@ package su.windmill.bytes.socket;
 import java.io.*;
 import java.security.SecureRandom;
 
+/**
+ * Frame of data sent to client/server
+ */
 public record Frame(int opcode, byte[] payload) {
 
     public static final int
@@ -19,6 +22,9 @@ public record Frame(int opcode, byte[] payload) {
             PAYLOAD_LENGTH = 0x7F,
             LENGTH_MASK = 0xFF;
 
+    /**
+     * Reads next frame from InputStream
+     */
     public static Frame read(InputStream inputStream) throws IOException {
         int first = inputStream.read();
         if(first == -1) return null;
@@ -64,6 +70,13 @@ public record Frame(int opcode, byte[] payload) {
         return new Frame(opcode, payload);
     }
 
+    /**
+     * Writes present frame to OutputStream
+     * @param frame frame to be written
+     * @param outputStream output stream to write into
+     * @param masked is frame should be masked or not
+     * @throws IOException if an IO error thrown when writing to outputStream
+     */
     public static void write(Frame frame, OutputStream outputStream, boolean masked) throws IOException {
         byte[] payload = frame.payload();
         if(payload == null) payload = new byte[0];

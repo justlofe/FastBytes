@@ -1,15 +1,18 @@
 package su.windmill.bytes.socket;
 
-import su.windmill.bytes.util.Assertions;
-import su.windmill.bytes.util.Key;
 import su.windmill.bytes.socket.exception.ListenerCallException;
 import su.windmill.bytes.socket.listener.Listener;
 import su.windmill.bytes.socket.listener.context.ContextType;
 import su.windmill.bytes.socket.listener.context.ListenerContext;
+import su.windmill.bytes.util.Assertions;
+import su.windmill.bytes.util.Key;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Service for handling listeners both on client and server implementation
+ */
 public final class ListenerService {
 
     private final Map<String, Map<Key, Listener<?>>> LISTENERS = new HashMap<>();

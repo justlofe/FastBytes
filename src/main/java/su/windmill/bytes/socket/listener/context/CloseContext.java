@@ -4,6 +4,9 @@ import su.windmill.bytes.socket.WebSocket;
 
 import java.util.Optional;
 
+/**
+ * Executed when connection with server is closed
+ */
 public class CloseContext extends WebSocketContext {
 
     private final int code;

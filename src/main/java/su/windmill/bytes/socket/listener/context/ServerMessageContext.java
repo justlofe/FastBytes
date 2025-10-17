@@ -6,6 +6,9 @@ import su.windmill.bytes.socket.server.WebSocketServer;
 
 import java.util.Optional;
 
+/**
+ * Executed when server received a message from client
+ */
 public final class ServerMessageContext extends MessageContext {
 
     private final WebSocketConnection client;

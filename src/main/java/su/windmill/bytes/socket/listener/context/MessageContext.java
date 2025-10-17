@@ -5,6 +5,9 @@ import su.windmill.bytes.socket.WebSocket;
 
 import java.util.Optional;
 
+/**
+ * Executed when client received a message from server
+ */
 public sealed class MessageContext extends WebSocketContext permits ServerMessageContext {
 
     private final FastBuffer message;

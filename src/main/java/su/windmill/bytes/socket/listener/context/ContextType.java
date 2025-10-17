@@ -1,5 +1,9 @@
 package su.windmill.bytes.socket.listener.context;
 
+/**
+ * ContextType used for registering Listener's
+ * @param <C>
+ */
 public final class ContextType<C extends ListenerContext> {
 
     // both

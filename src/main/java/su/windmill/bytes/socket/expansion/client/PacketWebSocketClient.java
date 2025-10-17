@@ -4,19 +4,23 @@ import su.windmill.bytes.buffer.FastBuffer;
 import su.windmill.bytes.codec.Codecs;
 import su.windmill.bytes.codec.context.DecodeContext;
 import su.windmill.bytes.socket.ListenerService;
-import su.windmill.bytes.socket.MessageWriter;
 import su.windmill.bytes.socket.client.AbstractWebSocketClient;
 import su.windmill.bytes.socket.expansion.ResponseTimeoutException;
+import su.windmill.bytes.socket.expansion.handshake.ServerboundHandshakePacket;
 import su.windmill.bytes.socket.expansion.packet.*;
 import su.windmill.bytes.socket.listener.context.ContextType;
 import su.windmill.bytes.util.Assertions;
 import su.windmill.bytes.util.Key;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unchecked")
 public class PacketWebSocketClient extends AbstractWebSocketClient implements PacketClient {
@@ -26,6 +30,7 @@ public class PacketWebSocketClient extends AbstractWebSocketClient implements Pa
 
     private final PacketRegistry packetRegistry;
     private final long packetTimeoutMillis;
+    private final String protocolName;
     private final ScheduledExecutorService scheduledExecutorService;
 
     private final Map<UUID, WaitingResponse> waitingResponse = new HashMap<>();
@@ -33,22 +38,24 @@ public class PacketWebSocketClient extends AbstractWebSocketClient implements Pa
     private final Map<Key, PacketWithoutResponseListener<?>> listenersWithoutResponse = new HashMap<>();
     private final Map<Key, PacketWithResponseListener<?, ?>> listenersWithResponse = new HashMap<>();
 
-    public PacketWebSocketClient(URI uri) {
+    public PacketWebSocketClient(URI uri, String protocolName) {
         this(
                 uri,
                 Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()),
                 new ListenerService(),
                 new PacketRegistry(),
-                DEFAULT_PACKET_TIMEOUT_SECONDS * 1000L
+                DEFAULT_PACKET_TIMEOUT_SECONDS * 1000L,
+                protocolName
         );
     }
 
-    public PacketWebSocketClient(URI uri, ScheduledExecutorService executorService, ListenerService listenerService, PacketRegistry packetRegistry, long packetTimeoutMillis) {
+    public PacketWebSocketClient(URI uri, ScheduledExecutorService executorService, ListenerService listenerService, PacketRegistry packetRegistry, long packetTimeoutMillis, String protocolName) {
         super(uri, executorService, listenerService);
         Assertions.between(packetTimeoutMillis, 1L, Long.MAX_VALUE - 1);
 
         this.packetRegistry = packetRegistry;
         this.packetTimeoutMillis = packetTimeoutMillis;
+        this.protocolName = protocolName;
         this.scheduledExecutorService = executorService;
 
         addListener(
@@ -79,6 +86,14 @@ public class PacketWebSocketClient extends AbstractWebSocketClient implements Pa
                 type.key(),
                 listener
         );
+    }
+
+    @Override
+    public void connect() throws IOException {
+        if(isConnected()) return;
+        super.connect();
+
+        sendWithResponse(new ServerboundHandshakePacket(protocolName, packetRegistry.hash()));
     }
 
     public final PacketRegistry packetRegistry() {
@@ -130,7 +145,7 @@ public class PacketWebSocketClient extends AbstractWebSocketClient implements Pa
     }
 
     private void submit(Packet packet, UUID uuid, boolean response) {
-        scheduledExecutorService.execute(() -> send((MessageWriter) buffer -> {
+        scheduledExecutorService.execute(() -> send(buffer -> {
             PacketType<Packet> type = (PacketType<Packet>) packet.type();
 
             // headers: id, type and uuid

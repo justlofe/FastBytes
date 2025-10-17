@@ -3,17 +3,17 @@ package su.windmill.bytes.socket.client;
 import su.windmill.bytes.FastBytes;
 import su.windmill.bytes.buffer.FastBuffer;
 import su.windmill.bytes.socket.Frame;
+import su.windmill.bytes.socket.ListenerService;
+import su.windmill.bytes.socket.MessageWriter;
 import su.windmill.bytes.socket.connection.WebSocketConnection;
 import su.windmill.bytes.socket.connection.handshake.ClientHandshake;
 import su.windmill.bytes.socket.exception.ListenerCallException;
+import su.windmill.bytes.socket.listener.Listener;
 import su.windmill.bytes.socket.listener.context.*;
 import su.windmill.bytes.util.Assertions;
 import su.windmill.bytes.util.Key;
-import su.windmill.bytes.socket.ListenerService;
-import su.windmill.bytes.socket.MessageWriter;
-import su.windmill.bytes.socket.listener.Listener;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -29,7 +29,6 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
     private final ListenerService listenerService;
 
     private WebSocketConnection connection;
-    private OutputStream outputStream;
 
     public AbstractWebSocketClient(URI uri) {
         this(
@@ -50,10 +49,10 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
 
     @Override
     public void connect() throws IOException {
+        if(isConnected()) return;
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? (uri.getScheme().equals("wss") ? 443 : 80) : uri.getPort();
         Socket socket = new Socket(host, port);
-        outputStream = socket.getOutputStream();
 
         connection = new WebSocketConnection(
                 socket,
@@ -114,6 +113,7 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
 
     @Override
     public void close() {
+        if(!isConnected()) return;
         this.close(CLOSE_NORMAL, Optional.empty());
     }
 
