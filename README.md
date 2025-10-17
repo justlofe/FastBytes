@@ -1,7 +1,11 @@
 # FastBytes
 Simple WebSocket's library with some additions.
 
+> [!CAUTION]
+> Don't use this library in production! It's mainly written just as proof of concept, so can include many security issues. Better choose something like [Java-WebSocket](https://github.com/TooTallNate/Java-WebSocket)
+
 ## Features
+- WebSocket - basic implementation for client and server
 - FastBuffer - allowing to read and write bytes
 - Codec - allows to encode and decode objects you want, write own codecs - use it
 
@@ -22,6 +26,92 @@ dependencies {
 ## Examples
 For example, we will create a class and codec for him.
 
+## WebSocket's
+<details>
+<summary>Client implementation</summary>
+
+```java
+import su.windmill.bytes.socket.client.AbstractWebSocketClient;
+import su.windmill.bytes.socket.listener.context.ContextType;
+import su.windmill.bytes.util.Key;
+
+import java.io.IOException;
+import java.net.URI;
+
+public class ExampleClient extends AbstractWebSocketClient {
+
+    public ExampleClient(URI uri) {
+        super(uri);
+
+        addListener(Key.key("open"), ContextType.OPEN, _ -> System.out.println("Connected"));
+        addListener(Key.key("close"), ContextType.CLOSE, context -> {
+            System.out.printf(
+                    "Closed connection. [Code: %s, Reason: \"%s\"]\n",
+                    context.code(),
+                    context.reason().orElse("no reason")
+            );
+        });
+        addListener(Key.key("message"), ContextType.MESSAGE, context -> {
+            String message = context.textMessage().orElse("binary");
+            System.out.println("Received message from server: [Message: \"" + message + "\"]");
+        });
+        addListener(Key.key("error"), ContextType.ERROR, context -> System.err.println("Exception thrown: " + context.throwable().getMessage()));
+    }
+
+    public static void main(String[] args) throws IOException {
+        ExampleClient client = new ExampleClient(URI.create("wss://localhost:433"));
+        client.connect();
+        
+        client.sendText("Ping!");
+    }
+
+}
+```
+</details>
+
+<details>
+<summary>Server implementation</summary>
+
+```java
+import su.windmill.bytes.socket.listener.context.ContextType;
+import su.windmill.bytes.util.Key;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+public class ExampleServer extends AbstractWebSocketServer {
+
+    public ExampleServer(int port) {
+        super(new InetSocketAddress(port));
+
+        addListener(Key.key("open"), ContextType.SERVER_OPEN, _ -> System.out.println("Connection opened"));
+        addListener(Key.key("close"), ContextType.SERVER_CLOSE, context -> {
+            System.out.printf(
+                    "Closed connection. [Code: %s, Reason: \"%s\"]%n",
+                    context.code(),
+                    context.reason().orElse("no reason")
+            );
+        });
+        addListener(Key.key("message"), ContextType.SERVER_MESSAGE, context -> {
+            String message = context.textMessage().orElse("binary");
+            System.out.println("Got a message from client: [Message: \"" + message + "\"]");
+        });
+        addListener(Key.key("error"), ContextType.ERROR, context -> System.err.println("Exception thrown: " + context.throwable().getMessage()));
+        addListener(Key.key("start"), ContextType.START, _ -> System.out.println("Started"));
+    }
+
+    public static void main(String[] args) throws IOException {
+        ExampleServer server = new ExampleServer(433);
+        server.start();
+    }
+
+}
+```
+
+</details>
+
+## Codec's
+
 ```java
 // ExampleEncodable.java
 import java.util.UUID;
@@ -39,6 +129,7 @@ public class ExampleEncodable {
     }
 
 }
+
 ```
 
 ```java

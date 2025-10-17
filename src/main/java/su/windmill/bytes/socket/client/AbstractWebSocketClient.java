@@ -79,7 +79,7 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
 
     @Override
     public boolean isConnected() {
-        return connection == null || connection.connected();
+        return connection != null && connection.connected();
     }
 
     @Override
