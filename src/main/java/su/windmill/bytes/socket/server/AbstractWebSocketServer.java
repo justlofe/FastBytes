@@ -6,6 +6,7 @@ import su.windmill.bytes.socket.ListenerService;
 import su.windmill.bytes.socket.MessageWriter;
 import su.windmill.bytes.socket.connection.WebSocketConnection;
 import su.windmill.bytes.socket.connection.handshake.ServerHandshake;
+import su.windmill.bytes.socket.exception.ListenerCallException;
 import su.windmill.bytes.socket.listener.Listener;
 import su.windmill.bytes.socket.listener.context.*;
 import su.windmill.bytes.util.Key;
@@ -15,33 +16,37 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public abstract class AbstractWebSocketServer implements WebSocketServer {
 
     private final InetSocketAddress socketAddress;
 
-    private final ExecutorService executorService;
     private final ListenerService listenerService;
 
     private final Set<WebSocketConnection> CONNECTIONS = Collections.synchronizedSet(new HashSet<>());
 
+    private volatile Thread serverThread;
     private volatile boolean running;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     public AbstractWebSocketServer(InetSocketAddress socketAddress) {
         this(
                 socketAddress,
-                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()),
                 new ListenerService()
         );
     }
 
-    public AbstractWebSocketServer(InetSocketAddress socketAddress, ExecutorService executorService, ListenerService listenerService) {
+    public AbstractWebSocketServer(InetSocketAddress socketAddress, ListenerService listenerService) {
         this.socketAddress = socketAddress;
-        this.executorService = executorService;
         this.listenerService = listenerService;
+    }
+
+    public Thread serverThread() {
+        return serverThread;
+    }
+
+    public ServerSocket serverSocket() {
+        return serverSocket;
     }
 
     @Override
@@ -53,28 +58,31 @@ public abstract class AbstractWebSocketServer implements WebSocketServer {
 
         listenerService.call(ContextType.START, new WebSocketContext(this));
 
-        executorService.execute(() -> {
+        serverThread = Thread.startVirtualThread(() -> {
             while (running) {
+                WebSocketConnection connection = null;
                 try {
                     Socket socket = serverSocket.accept();
                     socket.setTcpNoDelay(true);
 
-                    WebSocketConnection connection = createConnection(socket);
+                    connection = createConnection(socket);
                     connection.performHandshake();
 
                     CONNECTIONS.add(connection);
-                    connection.startReadLoop(executorService);
+                    connection.startReadLoop();
 
                     listenerService.call(ContextType.SERVER_OPEN, new ServerOpenContext(this, connection));
                 }
                 catch (Throwable throwable) {
-                    try {
-                        serverSocket.close();
-                    }
-                    catch (Throwable _) {}
+                    if(connection != null) connection.shutdown(true);
                 }
             }
         });
+    }
+
+    protected void error(Throwable throwable) {
+        if(throwable instanceof ListenerCallException) return;
+        listenerService.call(ContextType.ERROR, new ErrorContext(this, throwable));
     }
 
     private WebSocketConnection createConnection(Socket socket) throws IOException {
@@ -111,7 +119,6 @@ public abstract class AbstractWebSocketServer implements WebSocketServer {
         running = false;
 
         serverSocket.close();
-        executorService.shutdownNow();
 
         synchronized (CONNECTIONS) {
             CONNECTIONS.forEach(WebSocketConnection::shutdown);

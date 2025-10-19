@@ -7,10 +7,12 @@ import su.windmill.bytes.socket.MessageWriter;
 import su.windmill.bytes.socket.connection.handshake.HandshakeBehaviour;
 import su.windmill.bytes.util.Either;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutorService;
 
 public final class WebSocketConnection {
 
@@ -25,6 +27,7 @@ public final class WebSocketConnection {
     private final InputStream inputStream;
     private final OutputStream outputStream;
 
+    private volatile Thread workingThread;
     private volatile boolean connected;
 
     public WebSocketConnection(Socket socket, boolean serverInstance, HandshakeBehaviour handshakeBehaviour, MessageConsumer messageConsumer, ErrorConsumer errorConsumer, CloseConsumer closeConsumer) throws IOException {
@@ -52,6 +55,10 @@ public final class WebSocketConnection {
         return outputStream;
     }
 
+    public Thread workingThread() {
+        return workingThread;
+    }
+
     public boolean connected() {
         return connected;
     }
@@ -64,17 +71,14 @@ public final class WebSocketConnection {
         }
         catch (Throwable throwable) {
             errorConsumer.accept(this, throwable);
-            try {
-                socket.close();
-            }
-            catch (Throwable _) {}
+            shutdown(true);
         }
 
         connected = true;
     }
 
-    public void startReadLoop(ExecutorService executorService) {
-        executorService.execute(this::read);
+    public void startReadLoop() {
+        workingThread = Thread.startVirtualThread(this::read);
     }
 
     private void read() {
@@ -108,13 +112,11 @@ public final class WebSocketConnection {
                     default -> {}
                 }
             }
+            shutdown(true);
         }
         catch (Throwable throwable) {
             errorConsumer.accept(this, throwable);
-            try {
-                socket.close();
-            }
-            catch (Throwable _) {}
+            shutdown();
         }
     }
 
@@ -165,9 +167,8 @@ public final class WebSocketConnection {
             if (reason != null) baos.write(reason.getBytes());
 
             writeFrame(Frame.OPCODE_CLOSE, true, baos.toByteArray());
-            shutdown();
-
             closeConsumer.accept(this, code, reason);
+            shutdown();
         }
         catch (Throwable throwable) {
             errorConsumer.accept(this, throwable);
@@ -176,8 +177,13 @@ public final class WebSocketConnection {
     }
 
     public void shutdown() {
-        if(!connected) return;
-        connected = false;
+        shutdown(false);
+    }
+
+    public void shutdown(boolean force) {
+        if(!connected && !force) return;
+        connected = force;
+        workingThread = null;
         try {
             socket.close();
         }

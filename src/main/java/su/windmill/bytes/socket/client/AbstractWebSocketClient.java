@@ -18,32 +18,23 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public abstract class AbstractWebSocketClient implements WebSocketClient {
 
     private final URI uri;
 
-    private final ExecutorService executorService;
     private final ListenerService listenerService;
 
     private WebSocketConnection connection;
 
     public AbstractWebSocketClient(URI uri) {
-        this(
-                uri,
-                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()),
-                new ListenerService()
-        );
+        this(uri, new ListenerService());
     }
 
-    public AbstractWebSocketClient(URI uri, ExecutorService executorService, ListenerService listenerService) {
+    public AbstractWebSocketClient(URI uri, ListenerService listenerService) {
         Assertions.notNull(uri, "uri");
-        Assertions.notNull(executorService, "executorService");
         Assertions.notNull(listenerService, "listenerService");
         this.uri = uri;
-        this.executorService = executorService;
         this.listenerService = listenerService;
     }
 
@@ -65,7 +56,7 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
         connection.performHandshake();
 
         listenerService.call(ContextType.OPEN, new WebSocketContext(this));
-        connection.startReadLoop(executorService);
+        connection.startReadLoop();
     }
 
     protected void error(Throwable throwable) {
