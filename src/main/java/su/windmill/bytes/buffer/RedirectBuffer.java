@@ -54,6 +54,11 @@ public class RedirectBuffer implements FastBuffer {
     }
 
     @Override
+    public void readBytes(byte[] bytes) {
+        buffer.readBytes(bytes);
+    }
+
+    @Override
     public byte readByte() {
         return buffer.readByte();
     }
@@ -71,6 +76,11 @@ public class RedirectBuffer implements FastBuffer {
     @Override
     public FastBuffer writeUTF8(String val) {
         return buffer.writeUTF8(val);
+    }
+
+    @Override
+    public byte[] packReadable() {
+        return buffer.packReadable();
     }
 
     @Override
@@ -96,6 +106,11 @@ public class RedirectBuffer implements FastBuffer {
     @Override
     public FastBuffer writeShort(short val) {
         return buffer.writeShort(val);
+    }
+
+    @Override
+    public FastBuffer writeBytes(byte[] bytes) {
+        return buffer.writeBytes(bytes);
     }
 
     @Override

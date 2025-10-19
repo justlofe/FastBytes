@@ -2,6 +2,10 @@ package su.windmill.bytes.reader;
 
 public interface FastReader {
 
+    /**
+     * Reads bytes into an array
+     */
+    void readBytes(byte[] bytes);
     byte readByte();
     short readShort();
     int readInt();

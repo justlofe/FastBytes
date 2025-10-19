@@ -6,6 +6,9 @@ import su.windmill.bytes.writer.FastWriter;
 public interface FastBuffer extends FastReader, FastWriter {
 
     @Override
+    FastBuffer writeBytes(byte[] bytes);
+
+    @Override
     FastBuffer writeByte(byte val);
 
     @Override
@@ -31,5 +34,7 @@ public interface FastBuffer extends FastReader, FastWriter {
 
     @Override
     FastBuffer writeUTF8(String val);
+
+    byte[] packReadable();
 
 }

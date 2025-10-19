@@ -7,7 +7,7 @@ public class ExpandingBuffer extends FixedBuffer {
     }
 
     @Override
-    protected void writeBytes(byte... bytes) {
+    protected void writeRawBytes(byte... bytes) {
         if(data.length < (writeCursor + bytes.length)) {
             int newSize = writeCursor + bytes.length + 8;
             byte[] newData = new byte[newSize];
