@@ -183,6 +183,9 @@ public final class WebSocketConnection {
     public void shutdown(boolean force) {
         if(!connected && !force) return;
         connected = force;
+
+        if(workingThread != null) workingThread.interrupt();
+
         workingThread = null;
         try {
             socket.close();
