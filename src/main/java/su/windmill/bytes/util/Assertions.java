@@ -1,6 +1,8 @@
 package su.windmill.bytes.util;
 
-public class Assertions {
+public final class Assertions {
+
+    private Assertions() {}
 
     public static void notNull(Object object, String name) {
         if(object == null) throw new NullPointerException(name + " is null");

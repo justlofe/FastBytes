@@ -23,9 +23,11 @@ public class FileTest {
 
         FastBytes.writeFile(file, buffer);
 
-        FastBuffer buffer2 = FastBytes.readFile(file);
-        Assertions.assertEquals(42, buffer2.readInt());
-        Assertions.assertEquals(24.421f, buffer2.readFloat());
+        try (FastBuffer buffer2 = FastBytes.readFile(file)) {
+            Assertions.assertEquals(42, buffer2.readInt());
+            Assertions.assertEquals(24.421f, buffer2.readFloat());
+        }
+
     }
 
 }

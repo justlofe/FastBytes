@@ -9,7 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-public class FastBytes {
+public final class FastBytes {
 
     private FastBytes() {}
 

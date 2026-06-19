@@ -35,15 +35,15 @@ public class ExampleTest {
     @Test
     public void test() {
         ExampleEncodable exampleEncodable = ExampleEncodable.randomized();
-        FastBuffer buffer = FastBytes.expanding();
+        try (FastBuffer buffer = FastBytes.expanding()) {
+            ENCODABLE_CODEC.encode(exampleEncodable, buffer);
 
-        ENCODABLE_CODEC.encode(exampleEncodable, buffer);
+            ExampleEncodable decoded = ENCODABLE_CODEC.decode(DecodeContext.of(buffer));
 
-        ExampleEncodable decoded = ENCODABLE_CODEC.decode(DecodeContext.of(buffer));
-
-        Assertions.assertEquals(exampleEncodable.id, decoded.id);
-        Assertions.assertEquals(exampleEncodable.name, decoded.name);
-        Assertions.assertEquals(exampleEncodable.someParameter, decoded.someParameter);
+            Assertions.assertEquals(exampleEncodable.id, decoded.id);
+            Assertions.assertEquals(exampleEncodable.name, decoded.name);
+            Assertions.assertEquals(exampleEncodable.someParameter, decoded.someParameter);
+        }
     }
 
 }

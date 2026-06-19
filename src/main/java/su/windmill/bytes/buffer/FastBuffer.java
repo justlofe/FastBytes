@@ -3,7 +3,7 @@ package su.windmill.bytes.buffer;
 import su.windmill.bytes.reader.FastReader;
 import su.windmill.bytes.writer.FastWriter;
 
-public interface FastBuffer extends FastReader, FastWriter {
+public interface FastBuffer extends FastReader, FastWriter, AutoCloseable {
 
     @Override
     FastBuffer writeBytes(byte[] bytes);
@@ -37,4 +37,6 @@ public interface FastBuffer extends FastReader, FastWriter {
 
     byte[] packReadable();
 
+    @Override
+    void close();
 }

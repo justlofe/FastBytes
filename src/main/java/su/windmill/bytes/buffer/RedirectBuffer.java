@@ -118,6 +118,9 @@ public class RedirectBuffer implements FastBuffer {
         return buffer.writeByte(val);
     }
 
-
+    @Override
+    public void close() {
+        buffer.close();
+    }
 
 }

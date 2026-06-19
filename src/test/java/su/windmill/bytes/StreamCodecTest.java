@@ -21,15 +21,16 @@ public class StreamCodecTest {
                 ExampleEncodable.randomized()
         );
 
-        FastBuffer buffer = FastBytes.expanding();
-        ENCODABLE_STREAM_CODEC.encode(list, buffer);
+        try (FastBuffer buffer = FastBytes.expanding()) {
+            ENCODABLE_STREAM_CODEC.encode(list, buffer);
 
-        List<ExampleEncodable> list2 = List.copyOf(ENCODABLE_STREAM_CODEC.decode(DecodeContext.of(buffer)));
-        int size = list2.size();
-        Assertions.assertEquals(list.size(), size);
+            List<ExampleEncodable> list2 = List.copyOf(ENCODABLE_STREAM_CODEC.decode(DecodeContext.of(buffer)));
+            int size = list2.size();
+            Assertions.assertEquals(list.size(), size);
 
-        for (int i = 0; i < size; i++) {
-            Assertions.assertEquals(list.get(i), list2.get(i));
+            for (int i = 0; i < size; i++) {
+                Assertions.assertEquals(list.get(i), list2.get(i));
+            }
         }
     }
 

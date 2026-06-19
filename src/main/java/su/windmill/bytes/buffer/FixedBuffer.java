@@ -7,6 +7,8 @@ public class FixedBuffer implements FastBuffer {
     protected byte[] data;
     protected transient int readCursor, writeCursor;
 
+    protected transient boolean closed;
+
     public FixedBuffer(int size) {
         this.data = new byte[size];
         this.readCursor = 0;
@@ -81,7 +83,7 @@ public class FixedBuffer implements FastBuffer {
     }
 
     @Override
-    public FastBuffer writeUTF8(String val) {
+    public FixedBuffer writeUTF8(String val) {
         byte[] bytes = val.getBytes(StandardCharsets.UTF_8);
         writeInt(bytes.length);
         writeRawBytes(bytes);
@@ -169,10 +171,15 @@ public class FixedBuffer implements FastBuffer {
 
     @Override
     public int readableBytes() {
+        if(closed)
+            throw new IllegalStateException("closed");
         return writeCursor - readCursor;
     }
 
     protected void writeRawBytes(byte... bytes) {
+        if(closed)
+            throw new IllegalStateException("closed");
+
         if(data.length < (writeCursor + bytes.length)) throwEndOfData();
         for (byte val : bytes) {
             data[writeCursor++] = val;
@@ -180,6 +187,9 @@ public class FixedBuffer implements FastBuffer {
     }
 
     private byte peekByte() {
+        if(closed)
+            throw new IllegalStateException("closed");
+
         if(!hasBytes(1)) throwEndOfData();
         return data[readCursor++];
     }
@@ -190,6 +200,13 @@ public class FixedBuffer implements FastBuffer {
 
     private boolean hasBytes(int count) {
         return writeCursor >= readCursor + count;
+    }
+
+    @Override
+    public void close() {
+        if(closed) return;
+        closed = true;
+        data = null;
     }
 
 }

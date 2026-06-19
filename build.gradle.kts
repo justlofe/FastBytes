@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "su.windmill.bytes"
-version = "1.1"
+version = "1.2"
 
 repositories {
     mavenCentral()

@@ -12,12 +12,13 @@ public class FixedBufferTest {
 
     @Test
     public void test() {
-        FastBuffer buffer = FastBytes.fixed(1024);
-        UUID uuid = UUID.randomUUID();
-        Codecs.UUID.encode(uuid, buffer);
-        UUID decoded = Codecs.UUID.decode(DecodeContext.of(buffer));
-        Assertions.assertEquals(uuid, decoded);
-        Assertions.assertThrows(UnsupportedOperationException.class, buffer::readByte);
+        try (FastBuffer buffer = FastBytes.fixed(1024)) {
+            UUID uuid = UUID.randomUUID();
+            Codecs.UUID.encode(uuid, buffer);
+            UUID decoded = Codecs.UUID.decode(DecodeContext.of(buffer));
+            Assertions.assertEquals(uuid, decoded);
+            Assertions.assertThrows(UnsupportedOperationException.class, buffer::readByte);
+        }
     }
 
 }
