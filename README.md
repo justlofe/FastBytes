@@ -25,7 +25,7 @@ dependencies {
 
 ## Examples
 
-## WebSocket's
+## WebSockets
 <details>
 <summary>Client implementation</summary>
 
@@ -163,14 +163,14 @@ public class ExampleEncodable {
 
 import lofe.fastbytes.buffer.FastBuffer;
 import lofe.fastbytes.FastBytes;
-import lofe.fastbytes.codec.StreamCodec.Codec;
-import lofe.fastbytes.streamCodec.context.DecodeContext;
+import lofe.fastbytes.codec.StreamCodec;
+import lofe.fastbytes.codec.context.DecodeContext;
 
 import java.util.UUID;
 
 public class Main {
 
-    public static final Codec<ExampleEncodable> EXAMPLE_CODEC = Codec.fixed(
+    public static final StreamCodec<ExampleEncodable> EXAMPLE_CODEC = StreamCodec.fixed(
             (encodable, buffer) -> {
                 // Encoding id
                 buffer.writeLong(encodable.id.getMostSignificantBits());
