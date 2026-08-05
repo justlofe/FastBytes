@@ -24,16 +24,16 @@ dependencies {
 ```
 
 ## Examples
-For example, we will create a class and codec for him.
+For example, we will create a class and streamCodec for him.
 
 ## WebSocket's
 <details>
 <summary>Client implementation</summary>
 
 ```java
-import su.windmill.bytes.socket.client.AbstractWebSocketClient;
-import su.windmill.bytes.socket.listener.context.ContextType;
-import su.windmill.bytes.util.Key;
+import lofe.fastbytes.socket.client.AbstractWebSocketClient;
+import lofe.fastbytes.socket.listener.context.ContextType;
+import lofe.fastbytes.util.Key;
 
 import java.io.IOException;
 import java.net.URI;
@@ -61,7 +61,7 @@ public class ExampleClient extends AbstractWebSocketClient {
     public static void main(String[] args) throws IOException {
         ExampleClient client = new ExampleClient(URI.create("wss://localhost:433"));
         client.connect();
-        
+
         client.sendText("Ping!");
     }
 
@@ -73,8 +73,8 @@ public class ExampleClient extends AbstractWebSocketClient {
 <summary>Server implementation</summary>
 
 ```java
-import su.windmill.bytes.socket.listener.context.ContextType;
-import su.windmill.bytes.util.Key;
+import lofe.fastbytes.socket.listener.context.ContextType;
+import lofe.fastbytes.util.Key;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -134,10 +134,11 @@ public class ExampleEncodable {
 
 ```java
 // Main.java
-import su.windmill.bytes.buffer.FastBuffer;
-import su.windmill.bytes.FastBytes;
-import su.windmill.bytes.codec.Codec;
-import su.windmill.bytes.codec.context.DecodeContext;
+
+import lofe.fastbytes.buffer.FastBuffer;
+import lofe.fastbytes.FastBytes;
+import lofe.fastbytes.codec.StreamCodec.Codec;
+import lofe.fastbytes.streamCodec.context.DecodeContext;
 
 import java.util.UUID;
 
@@ -153,7 +154,7 @@ public class Main {
                 buffer.writeUTF8(encodable.name);
 
                 // Encoding someParameter
-                buffer.writeInt(encodable.someParameter);
+                buffer.writeVarInt(encodable.someParameter);
             },
             (ctx) -> {
                 FastBuffer buffer = ctx.buffer();
@@ -168,7 +169,7 @@ public class Main {
                 String name = buffer.readUTF8();
 
                 // Decoding someParameter
-                int someParameter = buffer.readInt();
+                int someParameter = buffer.readVarInt();
 
                 return new ExampleEncodable(id, name, someParameter);
             }
