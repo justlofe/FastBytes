@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.util.*;
 import java.util.function.Consumer;
 
-public abstract class AbstractWebSocketServer implements WebSocketServer {
+public class AbstractWebSocketServer implements WebSocketServer {
 
     protected final InetSocketAddress socketAddress;
     protected ServerHandler serverHandler;

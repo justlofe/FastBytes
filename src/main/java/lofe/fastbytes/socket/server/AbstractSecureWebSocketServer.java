@@ -9,7 +9,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public final class AbstractSecureWebSocketServer extends AbstractWebSocketServer {
+/**
+ * WebSockets server with SSl support.
+ */
+public class AbstractSecureWebSocketServer extends AbstractWebSocketServer {
 
     private final SSLContext sslContext;
 

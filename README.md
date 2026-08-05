@@ -2,12 +2,12 @@
 Simple WebSocket's library with some additions.
 
 > [!CAUTION]
-> Don't use this library in production! It's mainly written just as proof of concept, so can include many security issues. Better choose something like [Java-WebSocket](https://github.com/TooTallNate/Java-WebSocket)
+> Please, do not use this library in production! It's mainly written for educational purposes, so can include many security issues. Better choose something like [Java-WebSocket](https://github.com/TooTallNate/Java-WebSocket)
 
 ## Features
-- WebSocket - basic implementation for client and server
-- FastBuffer - allowing to read and write bytes
-- Codec - allows to encode and decode objects you want, write own codecs - use it
+- WebSocket - basic implementations for client and server
+- FastBuffer - buffers for reading and writing raw data
+- StreamCodecs - allows to encode and decode objects you want
 
 # Usage
 
@@ -15,54 +15,61 @@ Simple WebSocket's library with some additions.
 ```kotlin
 repositories {
     mavenCentral()
-    maven {url = uri("https://jitpack.io")}
+    maven {url = uri("https://repository.modoru.fun/releases")}
 }
 
 dependencies {
-    implementation("com.github.justlofe:FastBytes:1.0")
+    implementation("lofe.fastbytes:fastbytes:1.3")
 }
 ```
 
 ## Examples
-For example, we will create a class and streamCodec for him.
 
 ## WebSocket's
 <details>
 <summary>Client implementation</summary>
 
 ```java
+import lofe.fastbytes.buffer.FastBuffer;
 import lofe.fastbytes.socket.client.AbstractWebSocketClient;
-import lofe.fastbytes.socket.listener.context.ContextType;
-import lofe.fastbytes.util.Key;
+import lofe.fastbytes.socket.client.ClientHandler;
+import lofe.fastbytes.socket.client.WebSocketClient;
 
 import java.io.IOException;
 import java.net.URI;
 
-public class ExampleClient extends AbstractWebSocketClient {
+public final class ExampleClient extends AbstractWebSocketClient implements ClientHandler {
 
     public ExampleClient(URI uri) {
         super(uri);
+    }
 
-        addListener(Key.key("open"), ContextType.OPEN, _ -> System.out.println("Connected"));
-        addListener(Key.key("close"), ContextType.CLOSE, context -> {
-            System.out.printf(
-                    "Closed connection. [Code: %s, Reason: \"%s\"]\n",
-                    context.code(),
-                    context.reason().orElse("no reason")
-            );
-        });
-        addListener(Key.key("message"), ContextType.MESSAGE, context -> {
-            String message = context.textMessage().orElse("binary");
-            System.out.println("Received message from server: [Message: \"" + message + "\"]");
-        });
-        addListener(Key.key("error"), ContextType.ERROR, context -> System.err.println("Exception thrown: " + context.throwable().getMessage()));
+    @Override
+    public void open(WebSocketClient client) {
+        System.out.println("Connected");
+    }
+
+    @Override
+    public void close(WebSocketClient client, int code, String reason) {
+        System.out.printf("Closed connection. [Code: %s, Reason: \"%s\"]\n", code, reason);
+    }
+
+    @Override
+    public void message(WebSocketClient client, FastBuffer message, String textMessage) {
+        System.out.println("Received message from server: [Message: \"" + (message == null ? textMessage : "binary") + "\"]");
+    }
+
+    @Override
+    public void error(WebSocketClient client, Throwable throwable) {
+        System.err.println("Exception thrown: " + throwable.getMessage());
     }
 
     public static void main(String[] args) throws IOException {
-        ExampleClient client = new ExampleClient(URI.create("wss://localhost:433"));
-        client.connect();
+        ExampleClient exampleClient = new ExampleClient(URI.create("wss://localhost:433"));
+        exampleClient.clientHandler(exampleClient);
+        exampleClient.connect();
 
-        client.sendText("Ping!");
+        exampleClient.sendText("Ping!");
     }
 
 }
@@ -73,36 +80,54 @@ public class ExampleClient extends AbstractWebSocketClient {
 <summary>Server implementation</summary>
 
 ```java
-import lofe.fastbytes.socket.listener.context.ContextType;
-import lofe.fastbytes.util.Key;
+import lofe.fastbytes.buffer.FastBuffer;
+import lofe.fastbytes.socket.connection.WebSocketConnection;
+import lofe.fastbytes.socket.server.AbstractWebSocketServer;
+import lofe.fastbytes.socket.server.ServerHandler;
+import lofe.fastbytes.socket.server.WebSocketServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-public class ExampleServer extends AbstractWebSocketServer {
+public final class ExampleServer extends AbstractWebSocketServer implements ServerHandler {
 
     public ExampleServer(int port) {
         super(new InetSocketAddress(port));
+    }
 
-        addListener(Key.key("open"), ContextType.SERVER_OPEN, _ -> System.out.println("Connection opened"));
-        addListener(Key.key("close"), ContextType.SERVER_CLOSE, context -> {
-            System.out.printf(
-                    "Closed connection. [Code: %s, Reason: \"%s\"]%n",
-                    context.code(),
-                    context.reason().orElse("no reason")
-            );
-        });
-        addListener(Key.key("message"), ContextType.SERVER_MESSAGE, context -> {
-            String message = context.textMessage().orElse("binary");
-            System.out.println("Got a message from client: [Message: \"" + message + "\"]");
-        });
-        addListener(Key.key("error"), ContextType.ERROR, context -> System.err.println("Exception thrown: " + context.throwable().getMessage()));
-        addListener(Key.key("start"), ContextType.START, _ -> System.out.println("Started"));
+    @Override
+    public void open(WebSocketServer server, WebSocketConnection client) {
+        System.out.println("Connection opened");
+    }
+
+    @Override
+    public void close(WebSocketServer server, WebSocketConnection client, int code, String reason) {
+        System.out.printf(
+                "Closed connection. [Code: %s, Reason: \"%s\"]%n",
+                code,
+                reason
+        );
+    }
+
+    @Override
+    public void message(WebSocketServer server, WebSocketConnection client, FastBuffer message, String textMessage) {
+        System.out.println("Got a message from client: [Message: \"" + (message == null ? textMessage : "binary") + "\"]");
+    }
+
+    @Override
+    protected void error(WebSocketConnection client, Throwable throwable) {
+        System.err.println("Exception thrown: " + throwable.getMessage());
+    }
+
+    @Override
+    public void start() {
+        System.out.println("Started");
     }
 
     public static void main(String[] args) throws IOException {
-        ExampleServer server = new ExampleServer(433);
-        server.start();
+        ExampleServer exampleServer = new ExampleServer(433);
+        exampleServer.serverHandler(exampleServer);
+        exampleServer.start();
     }
 
 }
@@ -111,6 +136,7 @@ public class ExampleServer extends AbstractWebSocketServer {
 </details>
 
 ## Codec's
+For example, we will create a class and a codec for it.
 
 ```java
 // ExampleEncodable.java
